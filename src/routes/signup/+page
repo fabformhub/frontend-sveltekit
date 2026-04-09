@@ -1,0 +1,208 @@
+<script>
+  import { goto } from '$app/navigation';
+  import { showToast } from "$lib/toast.svelte.js";
+  let email = "";
+  let password = "";
+  let confirmPassword = "";
+
+  let errors = {
+    email: "",
+    password: "",
+    confirmPassword: "",
+    login: ""
+  };
+
+  function isEmail(v) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+  }
+
+  function loginWithGoogle() {
+    window.location.href = "https://fabform.io/f/auth/google";
+  }
+
+  function loginWithGithub() {
+    window.location.href = "https://fabform.io/f/auth/github";
+  }
+
+  async function signupWithEmail() {
+    errors = { email: "", password: "", confirmPassword: "", login: "" };
+    let valid = true;
+
+    const e = email.trim();
+    const p = password.trim();
+    const cp = confirmPassword.trim();
+
+    // Email validation
+    if (!e) {
+      errors.email = "Email is required";
+      valid = false;
+    } else if (!isEmail(e)) {
+      errors.email = "Please enter a valid email";
+      valid = false;
+    }
+
+    // Password validation
+    if (!p) {
+      errors.password = "Password is required";
+      valid = false;
+    }
+
+    // Confirm password validation
+    if (!cp) {
+      errors.confirmPassword = "Confirmation password is required";
+      valid = false;
+    } else if (p !== cp) {
+      errors.confirmPassword = "Passwords do not match";
+      valid = false;
+    }
+
+    if (!valid) return;
+
+    // Check email
+    const checkRes = await fetch("/f/check-email", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: e })
+    });
+
+    const checkData = await checkRes.json();
+
+    if (checkData.success === true) {
+      errors.login = "Email already exists in our database.";
+      return;
+    }
+
+    // Signup
+    const signupRes = await fetch("/f/signup", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: e, password: p })
+    });
+
+    const signupData = await signupRes.json();
+
+    if (signupData.success === true) {
+      showToast({
+        type: "info",
+        message: `Please confirm your email address with the link sent to ${e}.`
+      });
+
+      setTimeout(() => {
+        goto("/login");
+      }, 2000);
+    } else {
+      errors.login = signupData.message || "Signup failed. Please try again.";
+    }
+  }
+</script>
+
+<section class="min-h-screen flex items-center justify-center bg-slate-50 px-4">
+  <div class="w-full max-w-md bg-white shadow-xl rounded-2xl p-8">
+
+    <h1 class="text-3xl font-bold text-center mb-2 tracking-tight">
+      Create your account
+    </h1>
+    <p class="text-center text-slate-600 mb-6">
+      Start building forms in seconds
+    </p>
+
+    <!-- SOCIAL LOGIN -->
+    <div class="space-y-3 mb-6">
+      <button
+        on:click={loginWithGoogle}
+        class="w-full flex items-center justify-center gap-3 bg-white border border-slate-300 rounded-xl py-3 font-medium hover:bg-slate-100 transition"
+      >
+        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18" />
+        Continue with Google
+      </button>
+
+      <button
+        on:click={loginWithGithub}
+        class="w-full flex items-center justify-center gap-3 bg-white border border-slate-300 rounded-xl py-3 font-medium hover:bg-slate-100 transition"
+      >
+        <img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" width="20" />
+        Continue with GitHub
+      </button>
+    </div>
+
+    <div class="flex items-center my-6">
+      <div class="flex-grow h-px bg-slate-300"></div>
+      <span class="px-3 text-slate-500 text-sm">or</span>
+      <div class="flex-grow h-px bg-slate-300"></div>
+    </div>
+
+    <!-- EMAIL SIGNUP FORM -->
+    <form on:submit|preventDefault={signupWithEmail} class="space-y-6">
+
+      <!-- Email -->
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">Email</label>
+        <input
+          type="email"
+          bind:value={email}
+          placeholder="you@example.com"
+          class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-black focus:border-black transition"
+        />
+        {#if errors.email}
+          <p class="text-red-600 text-sm mt-1">{errors.email}</p>
+        {/if}
+      </div>
+
+      <!-- Password -->
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">Password</label>
+        <input
+          type="password"
+          bind:value={password}
+          placeholder="••••••••"
+          class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-black focus:border-black transition"
+        />
+        {#if errors.password}
+          <p class="text-red-600 text-sm mt-1">{errors.password}</p>
+        {/if}
+      </div>
+
+      <!-- Confirm Password -->
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">Confirm Password</label>
+        <input
+          type="password"
+          bind:value={confirmPassword}
+          placeholder="••••••••"
+          class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-black focus:border-black transition"
+        />
+        {#if errors.confirmPassword}
+          <p class="text-red-600 text-sm mt-1">{errors.confirmPassword}</p>
+        {/if}
+      </div>
+
+      <!-- Signup error -->
+      {#if errors.login}
+        <div class="bg-red-100 text-red-700 px-4 py-3 rounded-xl text-sm">
+          {errors.login}
+        </div>
+      {/if}
+
+      <!-- Submit -->
+      <button
+        type="submit"
+        class="w-full bg-black text-white py-3 rounded-xl font-semibold hover:bg-gray-900 transition"
+      >
+        Create account
+      </button>
+    </form>
+
+    <!-- Login link -->
+    <p class="text-center text-sm mt-6">
+      Already have an account?
+      <a
+        href="/login"
+        on:click={(e) => { e.preventDefault(); goto('/login'); }}
+        class="text-slate-700 font-semibold hover:text-black"
+      >
+        Log in
+      </a>
+    </p>
+
+  </div>
+</section>
