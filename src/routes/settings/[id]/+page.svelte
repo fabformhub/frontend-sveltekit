@@ -1,6 +1,5 @@
 <script>
   import { page } from '$app/stores';
-
   import { onMount } from "svelte";
   import Modal from "$lib/components/Modal.svelte";
   import MenuBar from "$lib/components/MenuBar.svelte";
@@ -11,12 +10,7 @@
   import { getJSON, postJSON } from "$lib/api.js";
   import { showToast } from "$lib/toast.svelte.js";
   
-// Form ID from router params
-  let id;
-
-  $effect(() => {
-    id = $page.params.id; 
-  });
+  let { id } = $page.params;
 
   let name = $state("");
   let respEmail = $state("");

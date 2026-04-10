@@ -8,25 +8,89 @@
   import { isEmail, isValidWebsite } from "$lib/validation.js";
   import { showToast } from "$lib/toast.svelte.js";
 
+  // --- State ---
   let endpoints = $state([]);
   let submissions = $state(null); // null = loading, [] = empty
   let totalSubmissions = $state(0);
+
   let selectedId = $state(null);
   let selectedRows = $state([]);
-  
+
   let isOpenModal = $state(false);
   let isOpenModal2 = $state(false);
   let newFormName = $state('');
 
-  // --- 2. Automated Table Logic ---
-  // This block RE-RUNS automatically whenever 'submissions' is reassigned.
+  // --- Load initial data ---
+  onMount(async () => {
+    if (!$user_id) return;
+
+    try {
+      endpoints = await getJSON(`endpoints/${$user_id}`);
+      const count = await getJSON(`submissions-count/${$user_id}`);
+      totalSubmissions = count.totalSubmissions;
+    } catch (err) {
+      showToast({ type: 'error', message: 'Failed to load forms' });
+    }
+  });
+
+  // --- Load submissions dynamically ---
+  async function changeEndpoint(id) {
+    selectedId = id;
+    submissions = null; // triggers loading UI
+    selectedRows = [];
+
+    try {
+      submissions = await getJSON(`submissions/${id}`);
+    } catch (err) {
+      showToast({ type: 'error', message: 'Failed to load submissions' });
+      submissions = [];
+    }
+  }
+
+  // --- Create new form ---
+  async function saveEndpoint() {
+    if ($tier == 0 && endpoints.length >= 1) {
+      showToast({ type: 'error', message: 'Free tier: 1 form limit.' });
+      return;
+    }
+
+    const id = nanoid(7);
+    const payload = { id, name: newFormName, message: 'Success' };
+
+    try {
+      await postJSON(`endpoints/${$user_id}`, payload);
+      endpoints = [...endpoints, payload];
+      isOpenModal = false;
+      newFormName = '';
+      changeEndpoint(id);
+    } catch (err) {
+      showToast({ type: 'error', message: 'Failed to create form' });
+    }
+  }
+
+  // --- Delete submissions ---
+  async function deleteSubmissions() {
+    const ids = selectedRows.map(r => r[0]);
+
+    try {
+      await postJSON(`delete-submissions/${ids}`, {});
+      submissions = submissions.filter(s => !ids.includes(s.id));
+      selectedRows = [];
+      isOpenModal2 = false;
+      showToast({ type: 'success', message: 'Deleted' });
+    } catch (err) {
+      showToast({ type: 'error', message: 'Failed to delete submissions' });
+    }
+  }
+
+  // --- Reactive table ---
   const table = $derived.by(() => {
     if (!submissions || submissions.length === 0) {
-      return { headers: [], rows: [], csv: '' };
+      return { headers: [], rows: [], csvUrl: '' };
     }
 
     let heads = ['id', 'date created'];
-    // Collect all unique keys from the form_data objects
+
     submissions.forEach(s => {
       if (s.form_data) {
         Object.keys(s.form_data).forEach(k => {
@@ -35,70 +99,26 @@
       }
     });
 
-    // Map data to match the header positions
-    const dataRows = submissions.map(s => heads.map(h => {
-      if (h === 'id') return s.id;
-      if (h === 'date created') return s.created_at;
-      return s.form_data ? (s.form_data[h] ?? '') : '';
-    }));
+    const rows = submissions.map(s =>
+      heads.map(h => {
+        if (h === 'id') return s.id;
+        if (h === 'date created') return s.created_at;
+        return s.form_data?.[h] ?? '';
+      })
+    );
 
-    const csv = heads.join(',') + '\n' + dataRows.map(r => r.join(',')).join('\n');
-    return { 
-      headers: heads, 
-      rows: dataRows, 
-      csvUrl: "data:text/csv;charset=utf-8," + encodeURI(csv) 
+    const csv = heads.join(',') + '\n' + rows.map(r => r.join(',')).join('\n');
+    return {
+      headers: heads,
+      rows,
+      csvUrl: "data:text/csv;charset=utf-8," + encodeURI(csv)
     };
   });
 
   const activeForm = $derived(endpoints.find(e => e.id === selectedId));
-
-  // --- 3. Functions ---
-  onMount(() => {
-    // Initial fetch using the store value $user_id
-    if ($user_id) {
-      getJSON(`endpoints/${$user_id}`, data => endpoints = data);
-      getJSON(`submissions-count/${$user_id}`, data => totalSubmissions = data.totalSubmissions);
-    }
-  });
-
-  function changeEndpoint(id) {
-    selectedId = id;
-    submissions = null; // Forces UI to show "Loading..."
-    selectedRows = [];
-
-    // The Fetch
-    getJSON(`submissions/${id}`, (data) => {
-      // Re-assigning the state variable triggers the $derived 'table' above
-      submissions = data; 
-    });
-  }
-
-  function saveEndpoint() {
-    if ($tier == 0 && endpoints.length >= 1) {
-      showToast({ type: 'error', message: 'Free tier: 1 form limit.' });
-      return;
-    }
-    const id = nanoid(7);
-    const payload = { id, name: newFormName, message: 'Success' };
-    
-    postJSON(`endpoints/${$user_id}`, payload, () => {
-      endpoints = [...endpoints, payload];
-      isOpenModal = false;
-      newFormName = '';
-      changeEndpoint(id);
-    });
-  }
-
-  function deleteSubmissions() {
-    const ids = selectedRows.map(r => r[0]);
-    postJSON(`delete-submissions/${ids}`, {}, () => {
-      submissions = submissions.filter(s => !ids.includes(s.id));
-      selectedRows = [];
-      isOpenModal2 = false;
-      showToast({ type: 'success', message: 'Deleted' });
-    });
-  }
 </script>
+
+<!-- UI stays exactly the same below -->
 
 <div class="flex h-screen bg-slate-50 text-slate-900 font-sans overflow-hidden">
   
@@ -156,7 +176,7 @@
 
       <div class="mt-6 bg-white border border-slate-200 rounded-[2rem] shadow-sm overflow-hidden flex-1 flex flex-col">
         {#if submissions === null}
-          <div class="m-auto text-slate-400 font-bold animate-pulse">Loading data...</div>
+          <div class="m-auto text-slate-400 font-bold animate-pulse">Loading data…</div>
         {:else if table.rows.length === 0}
           <div class="m-auto text-center px-10">
             <p class="text-slate-400 font-bold text-lg">No submissions found</p>
@@ -213,3 +233,4 @@
 </Modal>
 
 <Modal isOpenModal={isOpenModal2} on:closeModal={() => (isOpenModal2 = false)} on:success={deleteSubmissions} title="Delete Forever?" buttonText="Confirm Delete" />
+

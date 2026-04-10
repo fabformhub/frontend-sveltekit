@@ -1,35 +1,26 @@
-const getJSON = async(url,callback) => await fetch(API_LOCATION + url)
-.then(x => x.json())
-.then(data => callback(data))
+import { API_LOCATION } from '$lib/config.js';
 
+export async function getJSON(url) {
+  const res = await fetch(API_LOCATION + url);
 
-const postJSON = async (url, payload, callback) => {
- try {
-
-    const res = await fetch(API_LOCATION + url, {
-      method: 'POST',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(payload)
-    });
-
-    if (!res.ok) {
-      console.error("POST failed:", res.status, res.statusText);
-      return;
-    }
-
-    // Handle empty responses safely
-    const text = await res.text();
-    const data = text ? JSON.parse(text) : null;
-
-    callback(data);
-
-  } catch (err) {
-    console.error("POST error:", err);
+  if (!res.ok) {
+    throw new Error(`GET ${url} failed with ${res.status}`);
   }
-};
 
+  return res.json();
+}
 
-export {getJSON,postJSON}
+export async function postJSON(url, payload) {
+  const res = await fetch(API_LOCATION + url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+
+  if (!res.ok) {
+    throw new Error(`POST ${url} failed with ${res.status}`);
+  }
+
+  const text = await res.text();
+  return text ? JSON.parse(text) : null;
+}
