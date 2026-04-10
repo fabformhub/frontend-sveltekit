@@ -1,20 +1,8 @@
-<script context="module">
-  import { getJSON } from '$lib/api.js';
-
-  export async function load({ params }) {
-    const files = await getJSON(`get-files/${params.id}`);
-    return { files };
-  }
-</script>
-
 <script>
-  export let data;
-  let { files } = data;
-
+  const { data } = $props();
+  const { files } = data;
   import { page } from '$app/stores';
-  import MenuBar from '$lib/MenuBar.svelte';
-
-  let { id } = $page.params;
+  import MenuBar from '$lib/components/MenuBar.svelte';
 </script>
 
 <main>
