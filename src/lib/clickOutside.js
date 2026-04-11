@@ -16,4 +16,5 @@ export function clickOutside(node) {
       document.removeEventListener('click', handleClick, true);
     }
   };
+}
 

@@ -1,2 +1,2 @@
-export const API_LOCATION = "https://fabform.io/";
+export const API_LOCATION = "https://fabform.io/f/";
 

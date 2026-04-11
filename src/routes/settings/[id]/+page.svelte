@@ -1,15 +1,14 @@
 <script>
-  import { page } from '$app/stores';
   import { onMount } from "svelte";
   import Modal from "$lib/components/Modal.svelte";
-  import MenuBar from "$lib/components/MenuBar.svelte";
+  import FormNavbar from '$lib/components/FormNavbar.svelte';
   import UpgradeButton from "$lib/components/UpgradeButton.svelte";
 
   import { user_id, email, tier } from "$lib/store.js";
   import { removeProtocol } from "$lib/validation.js";
   import { getJSON, postJSON } from "$lib/api.js";
   import { showToast } from "$lib/toast.svelte.js";
-  
+  import { page } from '$app/stores';
   let { id } = $page.params;
 
   let name = $state("");
@@ -113,9 +112,7 @@
 
 <!-- MAIN WRAPPER -->
 <div class="space-y-6">
-
-  <!-- MENUBAR (consistent with Forms.svelte) -->
-  <MenuBar id={id} hideHomeButton={true} />
+  <FormNavbar id={id} hideHomeButton={true} />
 
   <!-- HEADER -->
   <header class="flex items-center justify-between">

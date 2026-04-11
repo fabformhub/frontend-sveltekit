@@ -1,3 +1,34 @@
 @plugin '@tailwindcss/forms';
 @import 'tailwindcss';
 @plugin '@tailwindcss/typography';
+
+.scroll-container {
+  scrollbar-width: thin;
+  scrollbar-color: #c7c7c7 #f1f1f1;
+}
+
+.scroll-container::-webkit-scrollbar {
+  height: 10px;
+}
+
+.scroll-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.scroll-container::-webkit-scrollbar-thumb {
+  background: #c7c7c7;
+  border-radius: 10px;
+}
+
+.scroll-container::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+.cell-scroll {
+  max-width: 300px;       /* or any width you prefer */
+  max-height: 120px;      /* prevents giant rows */
+  overflow: auto;         /* enables scrolling */
+  white-space: pre-wrap;  /* preserves formatting */
+  word-break: break-word; /* prevents overflow */
+  border-radius: 6px;
+}

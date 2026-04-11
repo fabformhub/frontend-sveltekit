@@ -1,8 +1,9 @@
 <script>
   const { data } = $props();
   const { files } = data;
+  import FormNavbar from '$lib/components/FormNavbar.svelte';
   import { page } from '$app/stores';
-  import MenuBar from '$lib/components/MenuBar.svelte';
+  let { id } = $page.params;
 </script>
 
 <main>
@@ -10,7 +11,7 @@
     <div class="row">
       <h1 class="title has-text-centered">File Uploads Form ID: {id}</h1>
 
-      <MenuBar id={id} />
+      <FormNavbar id={id} />
 
       {#if files.length === 0}
         <p class="subtitle my-5 has-text-centered">
