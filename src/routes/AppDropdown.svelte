@@ -1,100 +1,142 @@
 <script>
-  import { user_id } from "$lib/store.js";
+  import { clickOutside } from "$lib/clickOutside.js";
+
+  let open = $state(false);
+
+  const toggle = () => (open = !open);
+  const close = () => (open = false);
+
+  const onKeydown = (e) => {
+    if (e.key === "Escape") close();
+  };
 </script>
 
-{#if $user_id}
-  <nav
-    class="flex items-center gap-6 px-4 h-12 bg-white/80 backdrop-blur-xl border-b border-slate-200/70 shadow-sm"
+<div
+  class="relative inline-block"
+  role="presentation"
+  use:clickOutside
+  onclick_outside={close}
+  onkeydown={onKeydown}
+>
+  <!-- Trigger -->
+  <button
+    type="button"
+    aria-haspopup="true"
+    aria-expanded={open}
+    onclick={(e) => { e.stopPropagation(); toggle(); }}
+    class="flex items-center gap-2 px-3.5 py-2.5 bg-white border border-slate-300 
+           rounded-xl shadow-sm hover:bg-slate-50 active:bg-slate-100 
+           transition-all select-none text-sm font-medium text-slate-800"
   >
-    <!-- Logo -->
-    <a href="/" class="flex items-center gap-2 group">
-      <svg
-        class="w-6 h-6 text-slate-700 transition-colors group-hover:text-slate-900"
-        viewBox="0 0 24 24"
-        fill="none"
-      >
-        <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6" />
-      </svg>
+    Menu
 
-      <span
-        class="font-semibold text-slate-800 transition-colors group-hover:text-slate-900"
-      >
-        Fabform
-      </span>
-    </a>
+    <svg
+      class="w-4 h-4 text-slate-500 transition-transform duration-200"
+      style:transform={open ? "rotate(180deg)" : "rotate(0deg)"}
+      viewBox="0 0 20 20"
+      fill="none"
+    >
+      <path
+        d="M5 7L10 12L15 7"
+        stroke="currentColor"
+        stroke-width="1.6"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+    </svg>
+  </button>
 
-    <!-- Navigation -->
-    <div class="flex items-center gap-4 ml-auto">
+  {#if open}
+    <div
+      class="absolute right-0 mt-2 w-60 bg-white rounded-xl shadow-xl border 
+             border-slate-200 overflow-hidden z-50 origin-top-right 
+             animate-dropdown backdrop-blur-sm"
+      role="menu"
+    >
+      <!-- Account -->
+      <a
+        href="/account"
+        class="flex items-center gap-3 px-4 py-3 hover:bg-slate-100 
+               text-slate-700 transition-colors text-sm"
+      >
+        <svg class="w-5 h-5 text-slate-600" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="8" r="4" />
+          <path d="M6 20c1-3 4-5 6-5s5 2 6 5" />
+        </svg>
+        Account
+      </a>
+
       <!-- Forms -->
       <a
         href="/forms"
-        class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-100 active:scale-[0.97] transition-all"
+        class="flex items-center gap-3 px-4 py-3 hover:bg-slate-100 
+               text-slate-700 transition-colors text-sm"
       >
-        <svg
-          class="w-5 h-5 text-slate-600 transition-colors group-hover:text-slate-900"
-          viewBox="0 0 24 24"
-          fill="none"
-        >
-          <rect x="4" y="4" width="16" height="16" rx="2.5" stroke="currentColor" stroke-width="1.6" />
-          <path d="M8 9H16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
-          <path d="M8 13H13" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+        <svg class="w-5 h-5 text-slate-600" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="4" width="18" height="16" rx="2" />
+          <path d="M8 9h8M8 13h5" />
         </svg>
-        <span class="text-slate-700 font-medium">Forms</span>
+        Forms
       </a>
 
       <!-- Docs -->
       <a
         href="https://docs.fabform.io"
         target="_blank"
-        class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-100 active:scale-[0.97] transition-all"
+        class="flex items-center gap-3 px-4 py-3 hover:bg-slate-100 
+               text-slate-700 transition-colors text-sm"
       >
-        <svg
-          class="w-5 h-5 text-slate-600 transition-colors"
-          viewBox="0 0 24 24"
-          fill="none"
-        >
-          <path d="M7 4H15L19 8V20H7V4Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
-          <path d="M15 4V8H19" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
+        <svg class="w-5 h-5 text-slate-600" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M7 3h8l5 5v13H7z" />
+          <path d="M15 3v5h5" />
         </svg>
-        <span class="text-slate-700 font-medium">Docs</span>
+        Documentation
       </a>
 
-      <!-- Account -->
+      <!-- Contact -->
       <a
-        href="/account"
-        class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-100 active:scale-[0.97] transition-all"
+        href="https://fabform.io/contact/"
+        target="_blank"
+        class="flex items-center gap-3 px-4 py-3 hover:bg-slate-100 
+               text-slate-700 transition-colors text-sm"
       >
-        <svg
-          class="w-5 h-5 text-slate-600 transition-colors"
-          viewBox="0 0 24 24"
-          fill="none"
-        >
-          <path d="M12 12C14.2 12 16 10.2 16 8C16 5.8 14.2 4 12 4C9.8 4 8 5.8 8 8C8 10.2 9.8 12 12 12Z" stroke="currentColor" stroke-width="1.6" />
-          <path d="M5 20C6 17.6 8.4 16 12 16C15.6 16 18 17.6 19 20" stroke="currentColor" stroke-width="1.6" />
+        <svg class="w-5 h-5 text-slate-600" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 4h16v10H8l-4 4z" />
         </svg>
-        <span class="text-slate-700 font-medium">Account</span>
+        Contact Us
       </a>
 
-      <!-- Divider -->
-      <div class="w-px h-6 bg-slate-300/60 mx-1"></div>
+      <div class="border-t border-slate-200"></div>
 
       <!-- Logout -->
       <a
         href="/logout"
-        class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-red-50 active:scale-[0.97] transition-all"
+        class="flex items-center gap-3 px-4 py-3 hover:bg-slate-100 
+               text-slate-600 hover:text-slate-800 transition-colors text-sm"
       >
-        <svg
-          class="w-5 h-5 text-red-600 transition-colors"
-          viewBox="0 0 24 24"
-          fill="none"
-        >
-          <path d="M10 5H6C5.4 5 5 5.4 5 6V18C5 18.6 5.4 19 6 19H10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
-          <path d="M14 8L19 12L14 16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
-          <path d="M19 12H10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+        <svg class="w-5 h-5 text-slate-600" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M15 12H3" />
+          <path d="M10 7l5 5-5 5" />
+          <path d="M21 5v14a2 2 0 0 1-2 2h-6" />
         </svg>
-        <span class="text-red-600 font-semibold">Logout</span>
+        Logout
       </a>
     </div>
-  </nav>
-{/if}
+  {/if}
+</div>
+
+<style>
+  @keyframes dropdown {
+    0% { opacity: 0; transform: translateY(-6px) scale(0.97); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  .animate-dropdown {
+    animation: dropdown 0.14s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+</style>
 

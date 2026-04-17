@@ -1,0 +1,11 @@
+export async function handle({ event, resolve }) {
+  // 🔥 Force a fake logged‑in user for testing
+  event.locals.user = {
+    id: 999,
+    email: "dummy@fabform.io",
+    tier: "pro"
+  };
+
+  return resolve(event);
+}
+
