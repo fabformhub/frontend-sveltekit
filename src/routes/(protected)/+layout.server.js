@@ -10,10 +10,6 @@ export function load({ locals }) {
     throw redirect(302, '/login');
   }
 
-	console.log("🔥 SERVER LAYOUT returning props:", {
-  user: locals.user
-});
-
   // Expose user to the client
   return {
     user: locals.user
